@@ -1,20 +1,27 @@
 from typing import Annotated
+from contextlib import asynccontextmanager
 import uvicorn
 
 import typer
 from fastapi import FastAPI, Query
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from alerturl.dotenv import load_dotenv
 from alerturl.systemd import try_notify_systemd
 from alerturl.telegram import Bot
 
-app = FastAPI()
 bot: Bot
 
 
-@app.on_event("startup")
-def notify():
+@asynccontextmanager
+async def lifespan(_: FastAPI):
     try_notify_systemd()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/info")
@@ -30,6 +37,11 @@ def warning(message: Annotated[str, Query(alias="m")]):
 @app.get("/error")
 def error(message: Annotated[str, Query(alias="m")]):
     bot.send_message(bot.owner_id, "[ERROR] " + message, silent=False)
+
+
+@app.get("/")
+def index():
+    return FileResponse("static/index.html")
 
 
 def main(

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert URL Helper</title>
+    <style>
+        body {
+            font-size: 14px;
+            margin: 20px;
+            font-family: monospace;
+        }
+        pre {
+            margin: 10px 0;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<pre onclick="copyCode(this)">import requests
+requests.get("https://alert.marnikitta.com/info", {"m": "Process completed successfully"})</pre>
+
+<pre onclick="copyCode(this)">import requests
+requests.get("https://alert.marnikitta.com/warn", {"m": "Disk usage is 85%"})</pre>
+
+<pre onclick="copyCode(this)">try:
+    foo()
+except Exception as e:
+    import requests
+    requests.get("https://alert.marnikitta.com/error", {"m": f"Operation failed: {str(e)}"})</pre>
+<script>
+    function copyCode(element) {
+        const code = element.textContent;
+        navigator.clipboard.writeText(code);
+    }
+</script>
+</body>
+</html>

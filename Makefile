@@ -1,6 +1,6 @@
 host := alerturl
 package := alerturl
-deploy_files := alerturl poetry.toml README.md poetry.lock pyproject.toml
+deploy_files := alerturl poetry.toml README.md poetry.lock pyproject.toml static
 
 all: build
 
