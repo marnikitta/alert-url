@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Annotated
 from contextlib import asynccontextmanager
 import uvicorn
@@ -14,6 +15,22 @@ from alerturl.telegram import Bot
 bot: Bot
 
 
+class Level(str, Enum):
+    INFO = "info"
+    WARN = "warn"
+    ERROR = "error"
+
+
+def send_alert(level: Level, message: str) -> dict:
+    match level:
+        case Level.INFO:
+            silent = True
+        case Level.WARN | Level.ERROR:
+            silent = False
+    bot.send_message(bot.owner_id, f"[{level.name}] {message}", silent=silent)
+    return {"status": "ok"}
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     try_notify_systemd()
@@ -25,18 +42,23 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/info")
-def info(message: Annotated[str, Query(alias="m")]):
-    bot.send_message(bot.owner_id, "[INFO] " + message, silent=True)
+def info(message: Annotated[str, Query(alias="m")]) -> dict:
+    return send_alert(Level.INFO, message)
 
 
 @app.get("/warn")
-def warning(message: Annotated[str, Query(alias="m")]):
-    bot.send_message(bot.owner_id, "[WARN] " + message, silent=False)
+def warning(message: Annotated[str, Query(alias="m")]) -> dict:
+    return send_alert(Level.WARN, message)
 
 
 @app.get("/error")
-def error(message: Annotated[str, Query(alias="m")]):
-    bot.send_message(bot.owner_id, "[ERROR] " + message, silent=False)
+def error(message: Annotated[str, Query(alias="m")]) -> dict:
+    return send_alert(Level.ERROR, message)
+
+
+@app.get("/log")
+def log(level: Level, message: Annotated[str, Query(alias="m")]) -> dict:
+    return send_alert(level, message)
 
 
 @app.get("/")
